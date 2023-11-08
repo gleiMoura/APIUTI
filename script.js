@@ -6,17 +6,19 @@ export default function melhorHospital(array, especialidade) {
       return null; // Nenhum hospital com vagas disponíveis
     }
   
-    hospitaisDisponiveis.sort((a, b) => {
-      // Ordena pelo tempo, se for igual, prioriza a especialização desejada
-      if (a.tempo.value === b.tempo.value) {
-        if (a.especializacao === especialidade) {
-          return -1; // A prioridade é para a especialização desejada
-        } else if (b.especializacao === especialidade) {
-          return 1; // A prioridade é para a especialização desejada
-        }
-      }
-      return a.tempo.value - b.tempo.value;
+    let hospitalMenorTempo = hospitaisDisponiveis.reduce((min, hospital) => {
+      return hospital.tempo.value < min.tempo.value ? hospital : min;
     });
   
-    return hospitaisDisponiveis[0];
+    const hospitalComMesmaEspecialidade = hospitaisDisponiveis
+      .find(hospital => hospital.especializacao === especialidade);
+  
+    if (hospitalComMesmaEspecialidade) {
+      if (hospitalComMesmaEspecialidade.tempo.value - hospitalMenorTempo.tempo.value <= 300) {
+        return hospitalComMesmaEspecialidade;
+      }
+    }
+  
+    return [hospitalMenorTempo, hospitalComMesmaEspecialidade];
   }
+  

@@ -9,7 +9,7 @@ const port = 5000; //criamos uma porta para que o servidor fique conectado ao us
 
 const internacoes = [];
 
-const hospitais = [
+let hospitais = [
     {
         nome: "Hospital São Lucas",
         latitude: "-26.2361999",
@@ -41,7 +41,7 @@ app.listen(port, () => {
 }); // esse código conecta a porta ao nosso servidor. Agora, podemos fazer requisições para este app usando a porta 5000
 
 app.get("/pegarDadosDeLocalizacao", async (req, res) => {
-    const { latitude, longitude, especialidade, relato } = req.body;
+    const { latitude, longitude, especialidade, relato, nome, idade } = req.body;
 
     const dadosDeViagem = [];
 
@@ -59,7 +59,7 @@ app.get("/pegarDadosDeLocalizacao", async (req, res) => {
                 const tempo = data.rows[0].elements[0].duration;
 
 
-                const dados = { enderecoDestino, enderecoOrigem, distancia, tempo, vagas: hospital.vagas, especializacao: hospital.especializacao, relato };
+                const dados = { enderecoDestino, enderecoOrigem, distancia, tempo, vagas: hospital.vagas, especializacao: hospital.especializacao, relato, nome, idade };
                 dadosDeViagem.push(dados);
             } catch (error) {
                 console.error("Erro na solicitação à API:", error);
@@ -69,11 +69,33 @@ app.get("/pegarDadosDeLocalizacao", async (req, res) => {
 
     const hospitalEncontrado = melhorHospital(dadosDeViagem, especialidade)
 
-    console.log(hospitalEncontrado)
-
-    console.log(dadosDeViagem)
-
     res.status(200).send(hospitalEncontrado)
+});
+
+app.post("/encaminharPaciente", (req, res) => {
+    const {dados} = req.body;
+
+    const hospitaisAtualizados = hospitais.map(hospital => {
+        if(hospital.especializacao === dados.especializacao){
+            return {...hospital, vagas: vagas - 1}
+        }
+    });
+
+    hospitais = hospitaisAtualizados;
+
+    internacoes.push(dados)
+
+    res.status(201).send(hospitais)
+});
+
+app.get("/pegarInternacoes", (req, res) => {
+    if(internacoes.length > 0) {
+        res.status(200).send(internacoes)
+    }else{
+        res.status(400).send("Não há internações no momento");
+    }
 })
+
+
 
 
