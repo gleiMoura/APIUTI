@@ -1,9 +1,13 @@
 import express from "express";
 import cors from 'cors';
 import axios from 'axios';
+import melhorHospital from "./script.js";
+
 
 const app = express(); //cria uma instância para usarmos o express
 const port = 5000; //criamos uma porta para que o servidor fique conectado ao usarmos ele
+
+const internacoes = [];
 
 const hospitais = [
     {
@@ -37,13 +41,13 @@ app.listen(port, () => {
 }); // esse código conecta a porta ao nosso servidor. Agora, podemos fazer requisições para este app usando a porta 5000
 
 app.get("/pegarDadosDeLocalizacao", async (req, res) => {
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, especialidade, relato } = req.body;
 
     const dadosDeViagem = [];
 
     if (latitude && longitude) {
         for (const hospital of hospitais) {
-            const url = `https://api.distancematrix.ai/maps/api/distancematrix/json?origins=${latitude},${longitude}&destinations=-22.9138967,-43.2375033&key=fJGhlMn224umfTJPOHLrneYhWVVzWxe9QdtYaXkStDiZgJPD39ON96LdO3y0YADa`;
+            const url = `https://api.distancematrix.ai/maps/api/distancematrix/json?origins=${latitude},${longitude}&destinations=${hospital.latitude},${hospital.longitude}&key=fJGhlMn224umfTJPOHLrneYhWVVzWxe9QdtYaXkStDiZgJPD39ON96LdO3y0YADa`;
 
             try {
                 const response = await axios.get(url);
@@ -51,10 +55,11 @@ app.get("/pegarDadosDeLocalizacao", async (req, res) => {
 
                 const enderecoDestino = data.destination_addresses[0];
                 const enderecoOrigem = data.origin_addresses[0];
-                const distancia = data.rows[0].elements[0].distance.text;
-                const tempo = data.rows[0].elements[0].duration.text;
+                const distancia = data.rows[0].elements[0].distance;
+                const tempo = data.rows[0].elements[0].duration;
 
-                const dados = { enderecoDestino, enderecoOrigem, distancia, tempo };
+
+                const dados = { enderecoDestino, enderecoOrigem, distancia, tempo, vagas: hospital.vagas, especializacao: hospital.especializacao, relato };
                 dadosDeViagem.push(dados);
             } catch (error) {
                 console.error("Erro na solicitação à API:", error);
@@ -62,8 +67,13 @@ app.get("/pegarDadosDeLocalizacao", async (req, res) => {
         }
     }
 
+    const hospitalEncontrado = melhorHospital(dadosDeViagem, especialidade)
+
+    console.log(hospitalEncontrado)
+
     console.log(dadosDeViagem)
 
-    res.status(200).send(dadosDeViagem)
+    res.status(200).send(hospitalEncontrado)
 })
+
 
