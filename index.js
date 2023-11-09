@@ -40,8 +40,10 @@ app.listen(port, () => {
     console.log(`Servidor está conectado na porta ${port}`)
 }); // esse código conecta a porta ao nosso servidor. Agora, podemos fazer requisições para este app usando a porta 5000
 
-app.get("/pegarDadosDeLocalizacao", async (req, res) => {
+app.post("/encontrarHospital", async (req, res) => {
     const { latitude, longitude, especialidade, relato, nome, idade } = req.body;
+
+    console.log(req.body, "verificação")
 
     const dadosDeViagem = [];
 
@@ -67,17 +69,19 @@ app.get("/pegarDadosDeLocalizacao", async (req, res) => {
         }
     }
 
+    console.log(dadosDeViagem)
+
     const hospitalEncontrado = melhorHospital(dadosDeViagem, especialidade)
 
     res.status(200).send(hospitalEncontrado)
 });
 
 app.post("/encaminharPaciente", (req, res) => {
-    const {dados} = req.body;
+    const { dados } = req.body;
 
     const hospitaisAtualizados = hospitais.map(hospital => {
-        if(hospital.especializacao === dados.especializacao){
-            return {...hospital, vagas: vagas - 1}
+        if (hospital.especializacao === dados.especializacao) {
+            return { ...hospital, vagas: vagas - 1 }
         }
     });
 
@@ -89,9 +93,9 @@ app.post("/encaminharPaciente", (req, res) => {
 });
 
 app.get("/pegarInternacoes", (req, res) => {
-    if(internacoes.length > 0) {
+    if (internacoes.length > 0) {
         res.status(200).send(internacoes)
-    }else{
+    } else {
         res.status(400).send("Não há internações no momento");
     }
 })
